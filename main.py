@@ -2,8 +2,8 @@ import cv2
 import os
 import matplotlib.pyplot as plt
 from line_perspective_utils import perspectiveChange, detect_lanes_from_binary, Line
-from moviepy.editor import VideoFileClip
 import numpy as np
+import time
 import imghdr
 
 processed_frames = 0  # counter of frames processed (when processing video)
@@ -11,7 +11,7 @@ line_lt = Line()  # line on the left of the lane
 line_rt = Line()  # line on the right of the lane
 
 
-def process_pipeline(frame):
+def process_pipeline(frame,test_img):
     global line_lt, line_rt, processed_frames
 
     height, width = frame.shape[:2]
@@ -28,8 +28,10 @@ def process_pipeline(frame):
     binIm = np.logical_or(binIm, np.logical_and(minThreshold, maxThreshold))
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    _, eq_white_mask = cv2.threshold(cv2.equalizeHist(gray), thresh=176, maxval=240, type=cv2.THRESH_BINARY)
+    plt.imshow(cv2.equalizeHist(gray))
+    plt.show()
+    thre = 220
+    _, eq_white_mask = cv2.threshold(cv2.equalizeHist(gray), thresh=thre, maxval=255, type=cv2.THRESH_BINARY)
 
     binIm = np.logical_or(binIm, eq_white_mask)
 
@@ -79,7 +81,8 @@ def process_pipeline(frame):
     maskForLine = onRoad.copy()
     indices = np.any([unwarped_line != 0][0], axis=2)
     coordPoints = np.where(indices == True)
-    f = open("coord0.txt", "w+")
+    fileName = test_img[:-4] + "_output_thresh_" + str(thre) + ".txt"
+    f = open(fileName, "w+")
     writeStr = ""
     writeStr2 = ""
     prevY = 0
@@ -113,20 +116,28 @@ def process_pipeline(frame):
 
     processed_frames += 1
 
-    return blend_on_road
+    return blend_on_road, fileName, thre
 
 
 if __name__ == '__main__':
     # test_img_dir = 'Dark/06042013_0512.MP4/'
     # test_img_dir = 'test_images/'
     test_img_dir = 'crowd_test/'
+    num_images = 0
+    mean = 0
     for test_img in os.listdir(test_img_dir):
-        if (imghdr.what(test_img_dir + test_img)) == 'jpeg':
+        # if (imghdr.what(test_img_dir + test_img)) == 'jpeg':
+        if len(test_img) == 9:
             frame = cv2.imread(os.path.join(test_img_dir, test_img))
-            # plt.imshow(frame)
-            # plt.show()
-            blend = process_pipeline(frame)
+            start_time = int(round(time.time() * 1000))
+            blend, fileName, thre = process_pipeline(frame,test_img)
+            end_time = int(round(time.time() * 1000))
+            mean += end_time - start_time
+            num_images += 1
             cv2.imwrite('output_images/{}'.format(test_img), blend)
             plt.imshow(cv2.cvtColor(blend, code=cv2.COLOR_BGR2RGB))
-            plt.title("Final Image with Lanes")
+            plt.title("Final Image with Lanes For Threhold = " + str(thre))
+            plt.savefig(fileName[:-4] + '.jpg')
             plt.show()
+    mean /= num_images
+    print(mean)

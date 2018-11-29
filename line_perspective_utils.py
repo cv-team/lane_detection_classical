@@ -61,12 +61,12 @@ class Line:
         return curvature
 
 def detect_lanes_from_binary(binary_img, left_line, right_line):
-    for i in range(binary_img.shape[0]):
-        for j in range(0, 350):
-            binary_img[i][j] = 0
-    for i in range(binary_img.shape[0]):
-        for j in range(1500, binary_img.shape[1]):
-            binary_img[i][j] = 0
+    # for i in range(binary_img.shape[0]):
+    #     for j in range(0, 350):
+    #         binary_img[i][j] = 0
+    # for i in range(binary_img.shape[0]):
+    #     for j in range(1500, binary_img.shape[1]):
+    #         binary_img[i][j] = 0
     ht, wd = binary_img.shape
     hist = np.sum(binary_img[200:480, :], axis = 0)
 
