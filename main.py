@@ -30,7 +30,7 @@ def process_pipeline(frame,test_img):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     plt.imshow(cv2.equalizeHist(gray))
     plt.show()
-    thre = 220
+    thre = 170
     _, eq_white_mask = cv2.threshold(cv2.equalizeHist(gray), thresh=thre, maxval=255, type=cv2.THRESH_BINARY)
 
     binIm = np.logical_or(binIm, eq_white_mask)
